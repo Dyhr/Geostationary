@@ -1,0 +1,4 @@
+{
+	"name": "Rust Workspace",
+	"image": "rust:buster"
+}
