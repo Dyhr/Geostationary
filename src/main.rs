@@ -1,15 +1,25 @@
-use bevy::prelude::*;
-use systems::{player::PlayerPlugin, camera::CameraPlugin};
+use bevy::{
+    pbr::{DefaultOpaqueRendererMethod, DirectionalLightShadowMap},
+    prelude::*,
+};
+use systems::{camera::CameraPlugin, player::PlayerPlugin, BasePlugins};
 
 mod systems;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PlayerPlugin, CameraPlugin))
+        .insert_resource(Msaa::Off)
+        .insert_resource(DefaultOpaqueRendererMethod::deferred())
+        .insert_resource(AmbientLight {
+            color: Color::rgb(0.2, 0.2, 0.2),
+            brightness: 1.0 / 3.0,
+        })
+        .insert_resource(DirectionalLightShadowMap { size: 4096 })
+        .add_plugins(BasePlugins)
+        .add_plugins((PlayerPlugin, CameraPlugin))
         .add_systems(Startup, (spawn_floor, spawn_light))
         .run();
 }
-
 
 fn spawn_light(mut commands: Commands) {
     commands.spawn(PointLightBundle {
