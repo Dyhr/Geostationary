@@ -66,7 +66,7 @@ fn handle_disconnect(endpoint: &mut Endpoint, users: &mut ResMut<Users>, client_
     if let Some(username) = users.names.remove(&client_id) {
         endpoint
             .send_group_message(
-                users.names.keys().into_iter(),
+                users.names.keys(),
                 ServerMessage::ClientDisconnected { client_id },
             )
             .unwrap();
