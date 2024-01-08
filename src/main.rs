@@ -2,7 +2,8 @@ use bevy::{
     pbr::{DefaultOpaqueRendererMethod, DirectionalLightShadowMap},
     prelude::*,
 };
-use systems::{camera::CameraPlugin, network::NetworkPlugin, player::PlayerPlugin, BasePlugins};
+use network::NetworkPlugin;
+use systems::{camera::CameraPlugin, player::PlayerPlugin, BasePlugins};
 
 mod systems;
 

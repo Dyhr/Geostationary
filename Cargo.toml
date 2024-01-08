@@ -5,11 +5,12 @@ edition = "2021"
 
 [workspace]
 resolver = "2"
+members = ["modules/network"]
 
 [dependencies]
 bevy = { version = "0.12", features = [] }
-bevy_quinnet = { version = "0.6" }
-serde = { version = "1.0", features = ["derive"] }  
+
+network = { path = "modules/network" }
 
 [profile.dev]
 opt-level = 1

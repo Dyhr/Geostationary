@@ -26,7 +26,6 @@ use bevy::{
 };
 
 pub mod camera;
-pub mod network;
 pub mod player;
 
 pub struct BasePlugins;

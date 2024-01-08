@@ -36,7 +36,7 @@ pub fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMut<Clien
             }
             ServerMessage::ClientDisconnected { client_id } => {
                 if let Some(username) = users.names.remove(&client_id) {
-                    println!("{} left", username);
+                    info!("{} left", username);
                 } else {
                     warn!("ClientDisconnected for an unknown client_id: {}", client_id)
                 }
