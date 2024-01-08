@@ -26,6 +26,7 @@ use bevy::{
 };
 
 pub mod camera;
+pub mod network;
 pub mod player;
 
 pub struct BasePlugins;
@@ -60,5 +61,8 @@ impl PluginGroup for BasePlugins {
             .add(GilrsPlugin)
             .add(AnimationPlugin)
             .add(GizmoPlugin)
+
+        // TODO this will be needed for headless builds
+        // .add(ScheduleRunnerPlugin::default())
     }
 }

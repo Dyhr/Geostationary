@@ -2,7 +2,7 @@ use bevy::{
     pbr::{DefaultOpaqueRendererMethod, DirectionalLightShadowMap},
     prelude::*,
 };
-use systems::{camera::CameraPlugin, player::PlayerPlugin, BasePlugins};
+use systems::{camera::CameraPlugin, network::NetworkPlugin, player::PlayerPlugin, BasePlugins};
 
 mod systems;
 
@@ -16,7 +16,7 @@ fn main() {
         })
         .insert_resource(DirectionalLightShadowMap { size: 4096 })
         .add_plugins(BasePlugins)
-        .add_plugins((PlayerPlugin, CameraPlugin))
+        .add_plugins((PlayerPlugin, CameraPlugin, NetworkPlugin))
         .add_systems(Startup, (spawn_floor, spawn_light))
         .run();
 }
