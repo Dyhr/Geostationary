@@ -4,7 +4,7 @@ use bevy::{
 };
 use network::NetworkPlugin;
 use systems::{camera::CameraPlugin, player::PlayerPlugin, BasePlugins};
-use ui::{ButtonColors, UiPlugin};
+use ui::{button::build_button, UiPlugin};
 
 mod systems;
 
@@ -57,39 +57,9 @@ fn setup_test_ui(mut commands: Commands) {
                 ),
                 ..default()
             });
-            parent
-                .spawn((
-                    ButtonBundle {
-                        style: Style {
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                        interaction: Interaction::default(),
-                        ..default()
-                    },
-                    PlayButton,
-                    ButtonColors {
-                        normal: Color::rgb(0.3, 0.5, 0.3),
-                        hovered: Color::rgb(0.5, 0.7, 0.5),
-                        pressed: Color::rgb(0.1, 0.3, 0.1),
-                    },
-                ))
-                .with_children(|parent| {
-                    parent.spawn(TextBundle {
-                        text: Text::from_section(
-                            "Start",
-                            TextStyle {
-                                font: Handle::default(),
-                                font_size: 50.0,
-                                color: Color::BLACK,
-                            },
-                        ),
-                        ..default()
-                    });
-                });
+            build_button().with_text("Play").build(parent);
         });
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct PlayButton;
