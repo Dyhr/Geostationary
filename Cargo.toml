@@ -5,12 +5,16 @@ edition = "2021"
 
 [workspace]
 resolver = "2"
-members = ["modules/network"]
+members = [
+  "modules/network",
+  "modules/ui",
+]
 
 [dependencies]
-bevy = { version = "0.12", features = [] }
+bevy = { version = "0.12", features = ["default_font"] }
 
 network = { path = "modules/network" }
+ui      = { path = "modules/ui" }
 
 [profile.dev]
 opt-level = 1
