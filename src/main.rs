@@ -57,9 +57,11 @@ fn setup_test_ui(mut commands: Commands) {
                 ),
                 ..default()
             });
-            build_button().with_text("Play").build(parent);
+            build_button()
+                .with_text("Play")
+                .with_callback(Box::new(|| {
+                    println!("Button pressed!");
+                }))
+                .build(parent);
         });
 }
-
-#[derive(Component, Default)]
-struct PlayButton;
