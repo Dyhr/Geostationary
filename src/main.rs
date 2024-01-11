@@ -5,7 +5,7 @@ use bevy::{
 use network::NetworkPlugin;
 use systems::{
     camera::CameraPlugin,
-    menu::{MenuEvent, MenuPlugin},
+    menu::{MenuEvent, MenuEventHandlerResult, MenuEventHandlers, MenuPlugin},
     player::PlayerPlugin,
     BasePlugins,
 };
@@ -30,8 +30,17 @@ fn main() {
             UiPlugin::new().with_event::<MenuEvent>(),
             MenuPlugin,
         ))
-        .add_systems(Startup, (spawn_floor, spawn_light))
+        .add_systems(Startup, (spawn_floor, spawn_light, init_ui_handlers))
         .run();
+}
+
+fn init_ui_handlers(mut menu_event_handlers: ResMut<MenuEventHandlers>) {
+    menu_event_handlers
+        .plain_handlers
+        .insert("PlayLocal".to_string(), || {
+            info!("Triggered playing local");
+            MenuEventHandlerResult::Continue
+        });
 }
 
 fn spawn_light(mut commands: Commands) {
