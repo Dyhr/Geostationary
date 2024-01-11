@@ -2,8 +2,9 @@ use bevy::prelude::*;
 
 pub mod button;
 
+#[derive(Default)]
 pub struct UiPlugin {
-    events: Vec<Box<fn(&mut App)>>,
+    events: Vec<fn(&mut App)>,
 }
 
 impl Plugin for UiPlugin {
@@ -22,10 +23,10 @@ impl UiPlugin {
         Self { events: Vec::new() }
     }
     pub fn with_event<T: Event + Clone>(mut self) -> Self {
-        self.events.push(Box::new(|app| {
+        self.events.push(|app| {
             app.add_event::<T>();
             app.add_systems(PreUpdate, button::process_ui_events::<T>);
-        }));
+        });
         self
     }
 }

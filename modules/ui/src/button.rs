@@ -65,10 +65,10 @@ impl ButtonBuilder {
 
     fn build_with_event<T: Event + Clone>(
         self,
-        parent: &mut ChildBuilder<'_, '_, '_>,
+        commands: &mut Commands,
         event: ButtonEvent<T>,
-    ) {
-        let mut entity = parent.spawn((
+    ) -> Entity {
+        let mut entity = commands.spawn((
             ButtonBundle {
                 style: self.button_style,
                 ..default()
@@ -91,9 +91,11 @@ impl ButtonBuilder {
             }
             None => {}
         });
+
+        entity.id()
     }
-    pub fn build(self, parent: &mut ChildBuilder<'_, '_, '_>) {
-        let mut entity = parent.spawn((
+    pub fn build(self, commands: &mut Commands) -> Entity {
+        let mut entity = commands.spawn((
             ButtonBundle {
                 style: self.button_style,
                 ..default()
@@ -114,12 +116,14 @@ impl ButtonBuilder {
             }
             None => {}
         });
+
+        entity.id()
     }
 }
 
 impl<T: Event + Clone> ButtonBuilderWithEvent<T> {
-    pub fn build(self, parent: &mut ChildBuilder<'_, '_, '_>) {
-        self.inner.build_with_event(parent, self.event);
+    pub fn build(self, commands: &mut Commands) -> Entity {
+        self.inner.build_with_event(commands, self.event)
     }
 }
 

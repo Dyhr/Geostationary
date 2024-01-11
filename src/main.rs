@@ -9,7 +9,7 @@ use systems::{
     player::PlayerPlugin,
     BasePlugins,
 };
-use ui::{button::build_button, UiPlugin};
+use ui::UiPlugin;
 
 mod systems;
 
@@ -30,7 +30,7 @@ fn main() {
             UiPlugin::new().with_event::<MenuEvent>(),
             MenuPlugin,
         ))
-        .add_systems(Startup, (spawn_floor, spawn_light, setup_test_ui))
+        .add_systems(Startup, (spawn_floor, spawn_light))
         .run();
 }
 
@@ -51,44 +51,4 @@ fn spawn_floor(
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
-}
-
-fn setup_test_ui(mut commands: Commands) {
-    commands
-        .spawn(NodeBundle {
-            style: Style {
-                justify_content: JustifyContent::Start,
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
-                height: Val::Percent(100.0),
-                width: Val::Percent(100.0),
-                padding: UiRect::top(Val::Px(60.0)),
-                row_gap: Val::Px(30.0),
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text::from_section(
-                    "Geostationary",
-                    TextStyle {
-                        font: Handle::default(),
-                        font_size: 60.0,
-                        color: Color::WHITE,
-                    },
-                ),
-                ..default()
-            });
-            build_button()
-                .with_text("Play")
-                .with_callback(Box::new(|| {
-                    println!("Button pressed!");
-                }))
-                .build(parent);
-            build_button()
-                .with_text("Quit")
-                .with_event(MenuEvent::Quit)
-                .build(parent);
-        });
 }
