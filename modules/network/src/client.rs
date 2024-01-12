@@ -1,16 +1,11 @@
 use std::{thread::sleep, time::Duration};
 
 use bevy::{app::AppExit, prelude::*};
-use bevy_quinnet::{
-    client::{
-        certificate::CertificateVerificationMode, connection::ConnectionConfiguration, Client,
-    },
-    server::ConnectionEvent,
-};
+use bevy_quinnet::{client::Client, server::ConnectionEvent};
 
 use super::{ClientMessage, ServerMessage, Users};
 
-pub fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<Client>) {
+pub(crate) fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<Client>) {
     if !app_exit_events.is_empty() {
         client
             .connection()
@@ -21,17 +16,18 @@ pub fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<Client>) {
     }
 }
 
-pub fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMut<Client>) {
-    while let Some(message) = client
-        .connection_mut()
-        .try_receive_message::<ServerMessage>()
-    {
+pub(crate) fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMut<Client>) {
+    let Some(connection) = client.get_connection_mut() else {
+        return;
+    };
+
+    while let Some(message) = connection.try_receive_message::<ServerMessage>() {
         match message {
             ServerMessage::ClientConnected {
                 client_id,
                 username,
             } => {
-                info!("{} joined", username);
+                info!("User \"{}\" joined", username);
                 users.names.insert(client_id, username);
             }
             ServerMessage::ClientDisconnected { client_id } => {
@@ -52,16 +48,7 @@ pub fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMut<Clien
     }
 }
 
-pub fn start_connection(mut client: ResMut<Client>) {
-    client
-        .open_connection(
-            ConnectionConfiguration::from_strings("127.0.0.1:6660", "0.0.0.0:0").unwrap(),
-            CertificateVerificationMode::SkipVerification,
-        )
-        .unwrap();
-}
-
-pub fn handle_connection_events(
+pub(crate) fn handle_connection_events(
     mut connection_events: EventReader<ConnectionEvent>,
     client: ResMut<Client>,
 ) {

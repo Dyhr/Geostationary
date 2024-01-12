@@ -26,12 +26,14 @@ pub fn start_server(mut server: ResMut<Server>) {
 }
 
 pub fn handle_client_messages(mut server: ResMut<Server>, mut users: ResMut<Users>) {
-    let endpoint = server.endpoint_mut();
+    let Some(endpoint) = server.get_endpoint_mut() else {
+        return;
+    };
     for client_id in endpoint.clients() {
         while let Some(message) = endpoint.try_receive_message_from::<ClientMessage>(client_id) {
             match message {
                 ClientMessage::Join { name } => {
-                    info!("{} connected", name);
+                    info!("User \"{}\" connected", name);
                     users.names.insert(client_id, name);
                     endpoint
                         .send_message(

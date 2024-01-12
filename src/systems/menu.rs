@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use bevy::{app::AppExit, prelude::*};
 use ui::button::build_button;
 
@@ -7,13 +5,14 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<MenuEvent>();
-        app.insert_resource(MenuEventHandlers {
-            plain_handlers: HashMap::new(),
-        });
         app.add_systems(Startup, (menu_setup, menu_init));
         app.add_systems(PreUpdate, menu_event_reader);
     }
+}
+
+#[derive(Event, Clone, Debug)]
+pub enum GameEvent {
+    PlayLocal,
 }
 
 #[derive(Event, Clone, Debug)]
@@ -21,22 +20,14 @@ pub enum MenuEvent {
     Main,
     Settings,
     Quit,
-    Custom(String),
 }
 
 #[derive(Component)]
 struct MenuRoot;
 
-#[derive(Resource)]
-pub struct MenuEventHandlers {
-    pub plain_handlers: HashMap<String, fn() -> MenuEventHandlerResult>,
-}
-
-pub enum MenuEventHandlerResult {
+pub enum MenuEventResult {
     CloseMenu,
     ReplaceChildren(Vec<Entity>),
-    Continue,
-    Error(String),
 }
 
 fn menu_setup(mut commands: Commands) {
@@ -65,7 +56,6 @@ fn menu_init(mut writer: EventWriter<MenuEvent>) {
 fn menu_event_reader(
     mut commands: Commands,
     query: Query<(Entity, &MenuRoot)>,
-    event_handlers: Res<MenuEventHandlers>,
     mut events: EventReader<MenuEvent>,
     mut exit: EventWriter<AppExit>,
 ) {
@@ -77,7 +67,7 @@ fn menu_event_reader(
         info!("MenuEvent read: {:?}", event);
 
         let result = match event {
-            MenuEvent::Main => MenuEventHandlerResult::ReplaceChildren(vec![
+            MenuEvent::Main => MenuEventResult::ReplaceChildren(vec![
                 commands
                     .spawn(TextBundle {
                         text: Text::from_section(
@@ -93,7 +83,7 @@ fn menu_event_reader(
                     .id(),
                 build_button()
                     .with_text("Play")
-                    .with_event(MenuEvent::Custom("PlayLocal".to_string()))
+                    .with_event(GameEvent::PlayLocal)
                     .build(&mut commands),
                 build_button()
                     .with_text("Settings")
@@ -104,7 +94,7 @@ fn menu_event_reader(
                     .with_event(MenuEvent::Quit)
                     .build(&mut commands),
             ]),
-            MenuEvent::Settings => MenuEventHandlerResult::ReplaceChildren(vec![
+            MenuEvent::Settings => MenuEventResult::ReplaceChildren(vec![
                 commands
                     .spawn(TextBundle {
                         text: Text::from_section(
@@ -126,30 +116,19 @@ fn menu_event_reader(
             MenuEvent::Quit => {
                 info!("Quitting");
                 exit.send(AppExit);
-                MenuEventHandlerResult::CloseMenu
-            }
-            MenuEvent::Custom(name) => {
-                if let Some(handler) = event_handlers.plain_handlers.get(name) {
-                    handler()
-                } else {
-                    MenuEventHandlerResult::Error(format!("No handler for event: {:?}", event))
-                }
+                MenuEventResult::CloseMenu
             }
         };
 
         match result {
-            MenuEventHandlerResult::ReplaceChildren(children) => {
+            MenuEventResult::ReplaceChildren(children) => {
                 commands
                     .entity(menu_root_entity)
                     .despawn_descendants()
                     .push_children(&children[..]);
             }
-            MenuEventHandlerResult::CloseMenu => {
+            MenuEventResult::CloseMenu => {
                 commands.entity(menu_root_entity).despawn_descendants();
-            }
-            MenuEventHandlerResult::Continue => {}
-            MenuEventHandlerResult::Error(message) => {
-                error!("Error: {}", message);
             }
         }
     }

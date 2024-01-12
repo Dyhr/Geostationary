@@ -2,10 +2,10 @@ use bevy::{
     pbr::{DefaultOpaqueRendererMethod, DirectionalLightShadowMap},
     prelude::*,
 };
-use network::NetworkPlugin;
+use network::{NetworkEvent, NetworkPlugin};
 use systems::{
     camera::CameraPlugin,
-    menu::{MenuEvent, MenuEventHandlerResult, MenuEventHandlers, MenuPlugin},
+    menu::{GameEvent, MenuEvent, MenuPlugin},
     player::PlayerPlugin,
     BasePlugins,
 };
@@ -27,20 +27,28 @@ fn main() {
             PlayerPlugin,
             CameraPlugin,
             NetworkPlugin,
-            UiPlugin::new().with_event::<MenuEvent>(),
+            UiPlugin::new()
+                .with_event::<MenuEvent>()
+                .with_event::<GameEvent>(),
             MenuPlugin,
         ))
-        .add_systems(Startup, (spawn_floor, spawn_light, init_ui_handlers))
+        .add_systems(Startup, (spawn_floor, spawn_light))
+        .add_systems(PreUpdate, handle_game_events)
         .run();
 }
 
-fn init_ui_handlers(mut menu_event_handlers: ResMut<MenuEventHandlers>) {
-    menu_event_handlers
-        .plain_handlers
-        .insert("PlayLocal".to_string(), || {
-            info!("Triggered playing local");
-            MenuEventHandlerResult::Continue
-        });
+fn handle_game_events(
+    mut game_event: EventReader<GameEvent>,
+    mut network_event: EventWriter<NetworkEvent>,
+) {
+    for event in game_event.read() {
+        info!("GameEvent read: {:?}", event);
+        match event {
+            GameEvent::PlayLocal => {
+                network_event.send(NetworkEvent::ClientConnect("127.0.0.1".to_string(), 6660));
+            }
+        }
+    }
 }
 
 fn spawn_light(mut commands: Commands) {
