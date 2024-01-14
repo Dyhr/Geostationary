@@ -40,12 +40,15 @@ fn main() {
 fn handle_game_events(
     mut game_event: EventReader<GameEvent>,
     mut network_event: EventWriter<NetworkEvent>,
+    mut menu_event: EventWriter<MenuEvent>,
 ) {
     for event in game_event.read() {
         info!("GameEvent read: {:?}", event);
         match event {
             GameEvent::PlayLocal => {
+                network_event.send(NetworkEvent::ServerStart("127.0.0.1".to_string(), 6660));
                 network_event.send(NetworkEvent::ClientConnect("127.0.0.1".to_string(), 6660));
+                menu_event.send(MenuEvent::Hide);
             }
         }
     }

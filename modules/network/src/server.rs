@@ -1,29 +1,13 @@
-use std::net::{IpAddr, Ipv4Addr};
-
 use bevy::{
     ecs::{event::EventReader, system::ResMut},
     log::{info, warn},
 };
 use bevy_quinnet::{
-    server::{
-        certificate::CertificateRetrievalMode, ConnectionLostEvent, Endpoint, Server,
-        ServerConfiguration,
-    },
+    server::{ConnectionLostEvent, Endpoint, Server},
     shared::ClientId,
 };
 
 use super::{ClientMessage, ServerMessage, Users};
-
-pub fn start_server(mut server: ResMut<Server>) {
-    server
-        .start_endpoint(
-            ServerConfiguration::from_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 6660),
-            CertificateRetrievalMode::GenerateSelfSigned {
-                server_hostname: "127.0.0.1".into(),
-            },
-        )
-        .unwrap();
-}
 
 pub fn handle_client_messages(mut server: ResMut<Server>, mut users: ResMut<Users>) {
     let Some(endpoint) = server.get_endpoint_mut() else {

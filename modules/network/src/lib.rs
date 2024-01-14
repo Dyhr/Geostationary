@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr};
 
 use bevy::prelude::*;
+use bevy_quinnet::server::certificate::CertificateRetrievalMode;
+use bevy_quinnet::server::ServerConfiguration;
 use bevy_quinnet::{client::QuinnetClientPlugin, server::QuinnetServerPlugin, shared::ClientId};
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +22,6 @@ impl Plugin for NetworkPlugin {
             QuinnetServerPlugin::default(),
             QuinnetClientPlugin::default(),
         ));
-        app.add_systems(Startup, server::start_server);
         app.add_systems(
             Update,
             (
@@ -28,7 +29,7 @@ impl Plugin for NetworkPlugin {
                 server::handle_disconnect_events,
                 client::handle_server_messages,
                 client::handle_connection_events,
-                handle_internal_client_events,
+                handle_network_api_events,
             ),
         );
         app.add_systems(PostUpdate, client::on_app_exit);
@@ -39,13 +40,16 @@ impl Plugin for NetworkPlugin {
 #[derive(Event)]
 pub enum NetworkEvent {
     ClientConnect(String, u16),
+    ServerStart(String, u16),
 }
 
-fn handle_internal_client_events(
+fn handle_network_api_events(
     mut client: ResMut<Client>,
+    mut server: ResMut<Server>,
     mut events: EventReader<NetworkEvent>,
 ) {
     for event in events.read() {
+        // TODO handle errors
         match event {
             NetworkEvent::ClientConnect(host, port) => {
                 let server_addr = IpAddr::V4(host.parse::<Ipv4Addr>().unwrap());
@@ -56,8 +60,17 @@ fn handle_internal_client_events(
                         bevy_quinnet::client::certificate::CertificateVerificationMode::SkipVerification,
                     )
                     .unwrap();
-                // TODO handle errors
-            } // _ => {}
+            }
+            NetworkEvent::ServerStart(host, port) => {
+                server
+                    .start_endpoint(
+                        ServerConfiguration::from_ip(IpAddr::V4(Ipv4Addr::UNSPECIFIED), *port),
+                        CertificateRetrievalMode::GenerateSelfSigned {
+                            server_hostname: host.into(),
+                        },
+                    )
+                    .unwrap();
+            }
         }
     }
 }

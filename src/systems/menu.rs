@@ -19,6 +19,7 @@ pub enum GameEvent {
 pub enum MenuEvent {
     Main,
     Settings,
+    Hide,
     Quit,
 }
 
@@ -113,6 +114,7 @@ fn menu_event_reader(
                     .with_event(MenuEvent::Main)
                     .build(&mut commands),
             ]),
+            MenuEvent::Hide => MenuEventResult::CloseMenu,
             MenuEvent::Quit => {
                 info!("Quitting");
                 exit.send(AppExit);
