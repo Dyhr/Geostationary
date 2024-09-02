@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_math::primitives;
 
 pub struct PlayerPlugin;
 
@@ -19,8 +20,8 @@ fn spawn_player(
 ) {
     commands.spawn((
         PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-            material: materials.add(Color::rgb(0.5, 0.5, 1.0).into()),
+            mesh: meshes.add(Mesh::from(primitives::Capsule3d::default())),
+            material: materials.add(StandardMaterial::from(Color::srgb(0.5, 0.5, 1.0))),
             transform: Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),
             ..default()
         },
@@ -29,7 +30,7 @@ fn spawn_player(
 }
 
 fn player_movement(
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
     mut query_player: Query<&mut Transform, With<Player>>,
     query_camera: Query<&Transform, (With<Camera3d>, Without<Player>)>,
@@ -38,17 +39,17 @@ fn player_movement(
 
     for mut transform in query_player.iter_mut() {
         let mut direction = Vec3::ZERO;
-        if keys.pressed(KeyCode::W) {
-            direction += camera.forward();
+        if keys.pressed(KeyCode::KeyW) {
+            direction += camera.forward().normalize();
         }
-        if keys.pressed(KeyCode::S) {
-            direction += camera.back();
+        if keys.pressed(KeyCode::KeyS) {
+            direction += camera.back().normalize();
         }
-        if keys.pressed(KeyCode::A) {
-            direction += camera.left();
+        if keys.pressed(KeyCode::KeyA) {
+            direction += camera.left().normalize();
         }
-        if keys.pressed(KeyCode::D) {
-            direction += camera.right();
+        if keys.pressed(KeyCode::KeyD) {
+            direction += camera.right().normalize();
         }
 
         direction.y = 0.0;

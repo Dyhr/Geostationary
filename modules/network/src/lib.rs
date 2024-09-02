@@ -2,13 +2,16 @@ use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr};
 
 use bevy::prelude::*;
+use bevy_quinnet::client::certificate::CertificateVerificationMode;
+use bevy_quinnet::client::connection::ClientEndpointConfiguration;
 use bevy_quinnet::server::certificate::CertificateRetrievalMode;
-use bevy_quinnet::server::ServerConfiguration;
+use bevy_quinnet::server::ServerEndpointConfiguration;
+use bevy_quinnet::shared::channels::ChannelsConfiguration;
 use bevy_quinnet::{client::QuinnetClientPlugin, server::QuinnetServerPlugin, shared::ClientId};
 use serde::{Deserialize, Serialize};
 
-pub use bevy_quinnet::client::Client;
-pub use bevy_quinnet::server::Server;
+pub use bevy_quinnet::client::QuinnetClient;
+pub use bevy_quinnet::server::QuinnetServer;
 
 mod client;
 mod server;
@@ -44,8 +47,8 @@ pub enum NetworkEvent {
 }
 
 fn handle_network_api_events(
-    mut client: ResMut<Client>,
-    mut server: ResMut<Server>,
+    mut client: ResMut<QuinnetClient>,
+    mut server: ResMut<QuinnetServer>,
     mut events: EventReader<NetworkEvent>,
 ) {
     for event in events.read() {
@@ -56,18 +59,20 @@ fn handle_network_api_events(
                 let local_addr = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
                 client
                     .open_connection(
-                        bevy_quinnet::client::connection::ConnectionConfiguration::from_ips(server_addr, *port, local_addr, 0),
-                        bevy_quinnet::client::certificate::CertificateVerificationMode::SkipVerification,
+                        ClientEndpointConfiguration::from_ips(server_addr, *port, local_addr, 0),
+                        CertificateVerificationMode::SkipVerification,
+                        ChannelsConfiguration::new(),
                     )
                     .unwrap();
             }
             NetworkEvent::ServerStart(host, port) => {
                 server
                     .start_endpoint(
-                        ServerConfiguration::from_ip(IpAddr::V4(Ipv4Addr::UNSPECIFIED), *port),
+                        ServerEndpointConfiguration::from_ip(IpAddr::V4(Ipv4Addr::UNSPECIFIED), *port),
                         CertificateRetrievalMode::GenerateSelfSigned {
                             server_hostname: host.into(),
                         },
+                        ChannelsConfiguration::new(),
                     )
                     .unwrap();
             }

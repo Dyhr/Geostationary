@@ -16,9 +16,9 @@ pub fn build_button() -> ButtonBuilder {
     ButtonBuilder {
         text: None,
         button_colors: ButtonColors {
-            normal: Color::rgb(0.4, 0.4, 0.4),
-            hovered: Color::rgb(0.6, 0.6, 0.6),
-            pressed: Color::rgb(0.2, 0.2, 0.2),
+            normal: Color::srgb(0.4, 0.4, 0.4),
+            hovered: Color::srgb(0.6, 0.6, 0.6),
+            pressed: Color::srgb(0.2, 0.2, 0.2),
         },
         button_style: Style {
             justify_content: JustifyContent::Center,

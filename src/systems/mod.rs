@@ -21,15 +21,17 @@ use bevy::{
     time::TimePlugin,
     transform::TransformPlugin,
     ui::UiPlugin,
-    window::WindowPlugin,
-    winit::WinitPlugin,
+    window::{Window, WindowPlugin},
+    winit::{WakeUp, WinitPlugin},
 };
 
 pub mod camera;
 pub mod menu;
 pub mod player;
 
-pub struct BasePlugins;
+pub struct BasePlugins {
+    pub window_title: String,
+}
 
 impl PluginGroup for BasePlugins {
     fn build(self) -> PluginGroupBuilder {
@@ -43,11 +45,17 @@ impl PluginGroup for BasePlugins {
             .add(HierarchyPlugin)
             .add(DiagnosticsPlugin)
             .add(InputPlugin)
-            .add(WindowPlugin::default())
+            .add(WindowPlugin {
+                primary_window: Some(Window {
+                    title: self.window_title,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            })
             .add(AccessibilityPlugin)
             .add(AssetPlugin::default())
             .add(ScenePlugin)
-            .add(WinitPlugin::default())
+            .add(WinitPlugin::<WakeUp>::default())
             .add(RenderPlugin::default())
             .add(ImagePlugin::default())
             .add(PipelinedRenderingPlugin)

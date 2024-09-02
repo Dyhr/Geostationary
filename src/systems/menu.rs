@@ -1,5 +1,5 @@
 use bevy::{app::AppExit, prelude::*};
-use ui::button::build_button;
+use ui::*;
 
 pub struct MenuPlugin;
 
@@ -82,6 +82,7 @@ fn menu_event_reader(
                         ..default()
                     })
                     .id(),
+                build_textfield().with_text("Username").build(&mut commands),
                 build_button()
                     .with_text("Play")
                     .with_event(GameEvent::PlayLocal)
@@ -117,7 +118,7 @@ fn menu_event_reader(
             MenuEvent::Hide => MenuEventResult::CloseMenu,
             MenuEvent::Quit => {
                 info!("Quitting");
-                exit.send(AppExit);
+                exit.send(AppExit::Success);
                 MenuEventResult::CloseMenu
             }
         };

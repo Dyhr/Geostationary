@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
 pub mod button;
+pub mod textfield;
+
+pub use button::build_button;
+pub use textfield::build_textfield;
 
 #[derive(Default)]
 pub struct UiPlugin {
@@ -9,8 +13,22 @@ pub struct UiPlugin {
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, button::change_button_colors);
-        app.add_systems(PreUpdate, button::button_pressed_callback);
+        app.add_systems(
+            PreUpdate,
+            (
+                button::change_button_colors,
+                button::button_pressed_callback,
+            ),
+        );
+        app.add_systems(
+            PreUpdate,
+            (
+                textfield::update_textfield_interactions,
+                textfield::update_textfield_blinking,
+            ),
+        );
+
+        app.insert_resource(textfield::CurrentActive(None));
 
         for event in &self.events {
             event(app);

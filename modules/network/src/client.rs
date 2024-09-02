@@ -1,14 +1,17 @@
 use std::{thread::sleep, time::Duration};
 
 use bevy::{app::AppExit, prelude::*};
-use bevy_quinnet::{client::Client, server::ConnectionEvent};
+use bevy_quinnet::{client::QuinnetClient, server::ConnectionEvent};
 
 use super::{ClientMessage, ServerMessage, Users};
 
-pub(crate) fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<Client>) {
+pub(crate) fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<QuinnetClient>) {
+    let Some(connection) = client.get_connection() else {
+        return;
+    };
+
     if !app_exit_events.is_empty() {
-        client
-            .connection()
+        connection
             .send_message(ClientMessage::Disconnect {})
             .unwrap();
         // TODO Clean: event to let the async client send his last messages.
@@ -16,31 +19,31 @@ pub(crate) fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<Cli
     }
 }
 
-pub(crate) fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMut<Client>) {
+pub(crate) fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMut<QuinnetClient>) {
     let Some(connection) = client.get_connection_mut() else {
         return;
     };
 
     while let Some(message) = connection.try_receive_message::<ServerMessage>() {
         match message {
-            ServerMessage::ClientConnected {
+            (_, ServerMessage::ClientConnected {
                 client_id,
                 username,
-            } => {
+            }) => {
                 info!("User \"{}\" joined", username);
                 users.names.insert(client_id, username);
             }
-            ServerMessage::ClientDisconnected { client_id } => {
+            (_, ServerMessage::ClientDisconnected { client_id }) => {
                 if let Some(username) = users.names.remove(&client_id) {
                     info!("{} left", username);
                 } else {
                     warn!("ClientDisconnected for an unknown client_id: {}", client_id)
                 }
             }
-            ServerMessage::InitClient {
+            (_, ServerMessage::InitClient {
                 client_id,
                 usernames,
-            } => {
+            }) => {
                 users.self_id = client_id;
                 users.names = usernames;
             }
@@ -50,7 +53,7 @@ pub(crate) fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMu
 
 pub(crate) fn handle_connection_events(
     mut connection_events: EventReader<ConnectionEvent>,
-    client: ResMut<Client>,
+    client: ResMut<QuinnetClient>,
 ) {
     if !connection_events.is_empty() {
         let username: String = "test".to_string(); // TODO: ask for username

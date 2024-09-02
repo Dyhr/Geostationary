@@ -18,11 +18,13 @@ fn main() {
         .insert_resource(Msaa::Off)
         .insert_resource(DefaultOpaqueRendererMethod::deferred())
         .insert_resource(AmbientLight {
-            color: Color::rgb(0.2, 0.2, 0.2),
+            color: Color::srgb(0.2, 0.2, 0.2),
             brightness: 1.0 / 3.0,
         })
         .insert_resource(DirectionalLightShadowMap { size: 4096 })
-        .add_plugins(BasePlugins)
+        .add_plugins(BasePlugins {
+            window_title: "Geostationary".to_string(),
+        })
         .add_plugins((
             PlayerPlugin,
             CameraPlugin,
@@ -67,8 +69,8 @@ fn spawn_floor(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane::from_size(20.0))),
-        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        mesh: meshes.add(Mesh::from(bevy_math::primitives::Plane3d::new(Vec3::Y, Vec2::new(2.0, 2.0)))),
+        material: materials.add(StandardMaterial::from(Color::srgb(0.3, 0.5, 0.3))),
         ..default()
     });
 }

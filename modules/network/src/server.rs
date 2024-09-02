@@ -3,20 +3,20 @@ use bevy::{
     log::{info, warn},
 };
 use bevy_quinnet::{
-    server::{ConnectionLostEvent, Endpoint, Server},
+    server::{ConnectionLostEvent, Endpoint, QuinnetServer},
     shared::ClientId,
 };
 
 use super::{ClientMessage, ServerMessage, Users};
 
-pub fn handle_client_messages(mut server: ResMut<Server>, mut users: ResMut<Users>) {
+pub fn handle_client_messages(mut server: ResMut<QuinnetServer>, mut users: ResMut<Users>) {
     let Some(endpoint) = server.get_endpoint_mut() else {
         return;
     };
     for client_id in endpoint.clients() {
         while let Some(message) = endpoint.try_receive_message_from::<ClientMessage>(client_id) {
             match message {
-                ClientMessage::Join { name } => {
+                (_, ClientMessage::Join { name }) => {
                     info!("User \"{}\" connected", name);
                     users.names.insert(client_id, name);
                     endpoint
@@ -29,7 +29,7 @@ pub fn handle_client_messages(mut server: ResMut<Server>, mut users: ResMut<User
                         )
                         .unwrap();
                 }
-                ClientMessage::Disconnect {} => {
+                (_, ClientMessage::Disconnect {}) => {
                     endpoint.disconnect_client(client_id).unwrap();
                     handle_disconnect(endpoint, &mut users, client_id);
                 }
@@ -40,7 +40,7 @@ pub fn handle_client_messages(mut server: ResMut<Server>, mut users: ResMut<User
 
 pub fn handle_disconnect_events(
     mut connection_lost_events: EventReader<ConnectionLostEvent>,
-    mut server: ResMut<Server>,
+    mut server: ResMut<QuinnetServer>,
     mut users: ResMut<Users>,
 ) {
     for client in connection_lost_events.read() {
