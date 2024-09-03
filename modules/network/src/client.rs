@@ -12,7 +12,7 @@ pub(crate) fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<Qui
 
     if !app_exit_events.is_empty() {
         match connection.send_message(ClientMessage::Disconnect {}) {
-            Ok(()) => {}
+            Ok(()) => debug!("Successfully sent disconnect message"),
             Err(err) => warn!("Failed do send disconnect message to server: {}", err),
         }
         // TODO Clean: event to let the async client send his last messages.

@@ -6,7 +6,7 @@ use bevy_quinnet::client::certificate::CertificateVerificationMode;
 use bevy_quinnet::client::connection::ClientEndpointConfiguration;
 use bevy_quinnet::server::certificate::CertificateRetrievalMode;
 use bevy_quinnet::server::ServerEndpointConfiguration;
-use bevy_quinnet::shared::channels::ChannelsConfiguration;
+use bevy_quinnet::shared::channels::{ChannelType, ChannelsConfiguration};
 use bevy_quinnet::{client::QuinnetClientPlugin, server::QuinnetServerPlugin, shared::ClientId};
 use serde::{Deserialize, Serialize};
 
@@ -46,6 +46,8 @@ pub enum NetworkEvent {
     ServerStart(String, u16),
 }
 
+const CHANNEL_CONFIG: [ChannelType;2] = [ChannelType::UnorderedReliable, ChannelType::Unreliable];
+
 fn handle_network_api_events(
     mut client: ResMut<QuinnetClient>,
     mut server: ResMut<QuinnetServer>,
@@ -56,17 +58,21 @@ fn handle_network_api_events(
             NetworkEvent::ClientConnect(host, port) => {
                 let server_addr = IpAddr::V4(host.parse::<Ipv4Addr>().unwrap());
                 let local_addr = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
+                let channel_config = ChannelsConfiguration::from_types(Vec::from(CHANNEL_CONFIG)).unwrap(); // TODO handle error
+
                 match client
                     .open_connection(
                         ClientEndpointConfiguration::from_ips(server_addr, *port, local_addr, 0),
                         CertificateVerificationMode::SkipVerification,
-                        ChannelsConfiguration::new(),
+                        channel_config,
                     ) {
                         Ok(conn_id) => info!("Connected to server with connection ID {}", conn_id),
                         Err(err) => error!("Failed to connect to server: {}", err),   
                     }
             }
             NetworkEvent::ServerStart(host, port) => {
+                let channel_config = ChannelsConfiguration::from_types(Vec::from(CHANNEL_CONFIG)).unwrap(); // TODO handle error
+
                 match server
                     .start_endpoint(
                         ServerEndpointConfiguration::from_ip(
@@ -76,7 +82,7 @@ fn handle_network_api_events(
                         CertificateRetrievalMode::GenerateSelfSigned {
                             server_hostname: host.into(),
                         },
-                        ChannelsConfiguration::new(),
+                        channel_config,
                     ) {
                         Ok(cert) => info!("Started server endpoint with certificate {}", cert.fingerprint),
                         Err(err) => error!("Failed to start server endpoint: {}", err),   
