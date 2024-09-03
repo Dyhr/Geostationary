@@ -85,13 +85,13 @@ pub(crate) fn update_textfield_interactions(
 pub(crate) fn update_textfield_blinking(time: Res<Time>, mut query: Query<(&mut Text, &Active)>) {
     for (mut text, _) in query.iter_mut() {
         info!("update_textfield_blinking");
-    //     timer.tick(time.delta());
-    //     if timer.finished() {
-    //         if text.sections()[0].style.color == Color::BLACK {
-    //             text.sections_mut()[0].style.color = Color::WHITE;
-    //         } else {
-    //             text.sections_mut()[0].style.color = Color::BLACK;
-    //         }
-    //     }
+        //     timer.tick(time.delta());
+        //     if timer.finished() {
+        //         if text.sections()[0].style.color == Color::BLACK {
+        //             text.sections_mut()[0].style.color = Color::WHITE;
+        //         } else {
+        //             text.sections_mut()[0].style.color = Color::BLACK;
+        //         }
+        //     }
     }
 }

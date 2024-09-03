@@ -11,9 +11,10 @@ pub(crate) fn on_app_exit(app_exit_events: EventReader<AppExit>, client: Res<Qui
     };
 
     if !app_exit_events.is_empty() {
-        connection
-            .send_message(ClientMessage::Disconnect {})
-            .unwrap();
+        match connection.send_message(ClientMessage::Disconnect {}) {
+            Ok(()) => {}
+            Err(err) => warn!("Failed do send disconnect message to server: {}", err),
+        }
         // TODO Clean: event to let the async client send his last messages.
         sleep(Duration::from_secs_f32(0.1));
     }
@@ -26,10 +27,13 @@ pub(crate) fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMu
 
     while let Some(message) = connection.try_receive_message::<ServerMessage>() {
         match message {
-            (_, ServerMessage::ClientConnected {
-                client_id,
-                username,
-            }) => {
+            (
+                _,
+                ServerMessage::ClientConnected {
+                    client_id,
+                    username,
+                },
+            ) => {
                 info!("User \"{}\" joined", username);
                 users.names.insert(client_id, username);
             }
@@ -40,10 +44,13 @@ pub(crate) fn handle_server_messages(mut users: ResMut<Users>, mut client: ResMu
                     warn!("ClientDisconnected for an unknown client_id: {}", client_id)
                 }
             }
-            (_, ServerMessage::InitClient {
-                client_id,
-                usernames,
-            }) => {
+            (
+                _,
+                ServerMessage::InitClient {
+                    client_id,
+                    usernames,
+                },
+            ) => {
                 users.self_id = client_id;
                 users.names = usernames;
             }
@@ -60,10 +67,13 @@ pub(crate) fn handle_connection_events(
 
         info!("Joining with name: {}", username);
 
-        client
+        match client
             .connection()
             .send_message(ClientMessage::Join { name: username })
-            .unwrap();
+        {
+            Ok(()) => debug!("Successfully sent join message"),
+            Err(err) => error!("Failed to send join message: {}", err),
+        }
 
         connection_events.clear();
     }

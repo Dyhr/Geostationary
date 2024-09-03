@@ -52,29 +52,35 @@ fn handle_network_api_events(
     mut events: EventReader<NetworkEvent>,
 ) {
     for event in events.read() {
-        // TODO handle errors
         match event {
             NetworkEvent::ClientConnect(host, port) => {
                 let server_addr = IpAddr::V4(host.parse::<Ipv4Addr>().unwrap());
                 let local_addr = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
-                client
+                match client
                     .open_connection(
                         ClientEndpointConfiguration::from_ips(server_addr, *port, local_addr, 0),
                         CertificateVerificationMode::SkipVerification,
                         ChannelsConfiguration::new(),
-                    )
-                    .unwrap();
+                    ) {
+                        Ok(conn_id) => info!("Connected to server with connection ID {}", conn_id),
+                        Err(err) => error!("Failed to connect to server: {}", err),   
+                    }
             }
             NetworkEvent::ServerStart(host, port) => {
-                server
+                match server
                     .start_endpoint(
-                        ServerEndpointConfiguration::from_ip(IpAddr::V4(Ipv4Addr::UNSPECIFIED), *port),
+                        ServerEndpointConfiguration::from_ip(
+                            IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+                            *port,
+                        ),
                         CertificateRetrievalMode::GenerateSelfSigned {
                             server_hostname: host.into(),
                         },
                         ChannelsConfiguration::new(),
-                    )
-                    .unwrap();
+                    ) {
+                        Ok(cert) => info!("Started server endpoint with certificate {}", cert.fingerprint),
+                        Err(err) => error!("Failed to start server endpoint: {}", err),   
+                    }
             }
         }
     }

@@ -50,6 +50,7 @@ fn handle_game_events(
             GameEvent::PlayLocal => {
                 network_event.send(NetworkEvent::ServerStart("127.0.0.1".to_string(), 6660));
                 network_event.send(NetworkEvent::ClientConnect("127.0.0.1".to_string(), 6660));
+                // TODO get result from event somehow? maybe?
                 menu_event.send(MenuEvent::Hide);
             }
         }
@@ -69,7 +70,10 @@ fn spawn_floor(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(bevy_math::primitives::Plane3d::new(Vec3::Y, Vec2::new(2.0, 2.0)))),
+        mesh: meshes.add(Mesh::from(bevy_math::primitives::Plane3d::new(
+            Vec3::Y,
+            Vec2::new(2.0, 2.0),
+        ))),
         material: materials.add(StandardMaterial::from(Color::srgb(0.3, 0.5, 0.3))),
         ..default()
     });
